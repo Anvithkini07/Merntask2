@@ -4,26 +4,26 @@ A modern full-stack web application that allows users to create an account throu
 
 ---
 
-## 📸 Screenshots
+## 📸 Screenshots & Output Walkthrough
 
-### 1. Signup & Identity Interface
+### 1. Login / Signup Page
 ![Signup Page](screenshots/signup.png)
 
-> **Description:** The user registration page featuring a modern, responsive card layout with custom input fields for Full Name, Email Address, and Password with live strength indication, along with a "Join Us" submission button and link to log in.
+> **Description:** The user registration and login interface featuring clean input fields for Full Name, Email Address, and Password with a "Join Us" submission button and link to log in.
 
 ---
 
-### 2. Successful Registration
-![Successful Registration](screenshots/registration-success.png)
+### 2. Submission of Filled Details
+![Submission of Filled Details](screenshots/registration-success.png)
 
-> **Description:** Confirmation banner (`"Account created successfully!"`) displayed directly upon submitting valid, verified registration details to the Express backend.
+> **Description:** Form filled with user credentials (`Name: abcd`, `Email: abcd@gmail.com`) and successfully submitted. The confirmation message (`"Account created successfully!"`) is displayed directly upon verification.
 
 ---
 
-### 3. MongoDB Database (Compass View)
-![MongoDB Database](screenshots/mongodb-compass.png)
+### 3. Result in MongoDB Database (MongoDB Compass)
+![Result in MongoDB Database](screenshots/mongodb-compass.png)
 
-> **Description:** View from MongoDB Compass showing the stored user documents in the `signup_db.users` collection. User passwords are automatically salted and hashed using `bcrypt` (10 rounds) before being saved to the database.
+> **Description:** View from MongoDB Compass showing the stored user documents in the `signup_db.users` collection for registered accounts (`abcd: abcd@gmail.com` and `efgh: efgh@gmail.com`). Passwords are cryptographically salted and hashed using `bcrypt` (10 rounds) before being committed to the database.
 
 ---
 
