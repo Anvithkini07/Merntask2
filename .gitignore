@@ -1,0 +1,20 @@
+# Node dependencies
+node_modules/
+package-lock.json
+
+# Environment variables
+.env
+.env.local
+
+# Build output
+dist/
+build/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# System Files
+.DS_Store
+Thumbs.db
