@@ -13,6 +13,9 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// In-memory fallback if MongoDB service is not currently active
+const inMemoryUsers = [];
+
 // User Schema & Model
 const userSchema = new mongoose.Schema({
   name: { 
@@ -47,7 +50,7 @@ app.get("/", (req, res) => {
 // GET /api/health - Detailed health check with DB status
 app.get("/api/health", (req, res) => {
   const dbState = mongoose.connection.readyState;
-  const states = { 0: "disconnected", 1: "connected", 2: "connecting", 3: "disconnecting" };
+  const states = { 0: "disconnected (standalone)", 1: "connected (mongodb)", 2: "connecting", 3: "disconnecting" };
   res.status(200).json({
     status: "ok",
     database: states[dbState] || "unknown",
@@ -82,10 +85,16 @@ app.post("/api/signup", async (req, res) => {
       });
     }
 
+    const cleanEmail = email.trim().toLowerCase();
+    const isDbConnected = mongoose.connection.readyState === 1;
+
     // Check for existing duplicate account
-    const existingUser = await User.findOne({
-      email: email.trim().toLowerCase()
-    });
+    let existingUser = null;
+    if (isDbConnected) {
+      existingUser = await User.findOne({ email: cleanEmail });
+    } else {
+      existingUser = inMemoryUsers.find(u => u.email === cleanEmail);
+    }
 
     if (existingUser) {
       return res.status(409).json({
@@ -96,12 +105,24 @@ app.post("/api/signup", async (req, res) => {
     // Cryptographic hashing with 10 salt rounds
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Persist new user document in MongoDB
-    const newUser = await User.create({
-      name: name.trim(),
-      email: email.trim().toLowerCase(),
-      password: hashedPassword
-    });
+    // Persist new user document in MongoDB or in-memory fallback
+    let newUser;
+    if (isDbConnected) {
+      newUser = await User.create({
+        name: name.trim(),
+        email: cleanEmail,
+        password: hashedPassword
+      });
+    } else {
+      newUser = {
+        _id: "mock_" + Date.now(),
+        name: name.trim(),
+        email: cleanEmail,
+        password: hashedPassword,
+        createdAt: new Date()
+      };
+      inMemoryUsers.push(newUser);
+    }
 
     res.status(201).json({
       message: "Account created successfully!",
@@ -112,7 +133,6 @@ app.post("/api/signup", async (req, res) => {
       }
     });
   } catch (error) {
-    // Catch MongoDB duplicate key error code
     if (error.code === 11000) {
       return res.status(409).json({
         message: "This email is already registered."
@@ -132,19 +152,15 @@ async function startServer() {
   const port = process.env.PORT || 5000;
 
   try {
-    await mongoose.connect(mongoUri);
+    await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 1500 });
     console.log(`Connected to MongoDB at: ${mongoUri}`);
-
-    app.listen(port, () => {
-      console.log(`Auth Server running at: http://localhost:${port}`);
-    });
   } catch (error) {
-    console.error("MongoDB connection failed:", error.message);
-    console.log("\n[Note] Running in standalone API mode without persistent DB. Connect MongoDB on 127.0.0.1:27017 to enable persistence.");
-    app.listen(port, () => {
-      console.log(`Auth Server running at: http://localhost:${port} (DB disconnected)`);
-    });
+    console.warn(`[Notice] MongoDB is not running locally (${error.message}). Operating in standalone mode with bcrypt security.`);
   }
+
+  app.listen(port, () => {
+    console.log(`Auth Backend running at: http://localhost:${port}`);
+  });
 }
 
 startServer();
