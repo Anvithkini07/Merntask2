@@ -146,6 +146,56 @@ app.post("/api/signup", async (req, res) => {
   }
 });
 
+// POST /api/login - Authentication Endpoint
+app.post("/api/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({
+        message: "Please enter your email and password."
+      });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const isDbConnected = mongoose.connection.readyState === 1;
+
+    let user = null;
+    if (isDbConnected) {
+      user = await User.findOne({ email: cleanEmail });
+    } else {
+      user = inMemoryUsers.find(u => u.email === cleanEmail);
+    }
+
+    if (!user) {
+      return res.status(401).json({
+        message: "Invalid email or password."
+      });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({
+        message: "Invalid email or password."
+      });
+    }
+
+    res.status(200).json({
+      message: "Signed in successfully!",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email
+      }
+    });
+  } catch (error) {
+    console.error("Login error:", error.message);
+    res.status(500).json({
+      message: "Authentication service error. Please try again."
+    });
+  }
+});
+
 // Server Initialization
 async function startServer() {
   const mongoUri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/signup_db";
