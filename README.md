@@ -7,7 +7,7 @@ A modern full-stack web application featuring an intuitive, glassmorphic authent
 ## 📸 Screenshots & Output Walkthrough
 
 ### 1. Create Account Page (Modern Obsidian & Bento UI)
-![Create Account Page](screenshots/signup.png)
+![Create Account Page](screenshots/create-account.png)
 
 > **Description:** The redesigned user registration interface featuring the "Cryptographic Identity & Modern Access Mesh" hero showcase, Bento security metrics (Bcrypt Salt Hashing, Dual-Mode Persistence, Sub-Millisecond Verification), and responsive input fields with live password strength scoring and quick test autofill.
 
@@ -75,7 +75,7 @@ Merntask2/
 │   ├── vite.config.js     # Vite dev server configuration
 │   └── package.json       # React and Vite dependencies
 ├── screenshots/
-│   ├── signup.png         # Create Account full layout screenshot
+│   ├── create-account.png # Create Account full layout screenshot
 │   ├── login.png          # Sign In tab portal screenshot
 │   └── mongodb-compass.png# MongoDB Compass database document output
 ├── .gitignore
