@@ -23,6 +23,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.19.2",
+    "mongodb-memory-server": "^10.4.3",
     "mongoose": "^8.9.5"
   }
 }

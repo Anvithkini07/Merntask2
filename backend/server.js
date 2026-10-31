@@ -198,14 +198,37 @@ app.post("/api/login", async (req, res) => {
 
 // Server Initialization
 async function startServer() {
-  const mongoUri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/signup_db";
+  let mongoUri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/signup_db";
   const port = process.env.PORT || 5000;
+  let mongodInstance = null;
 
   try {
     await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 1500 });
-    console.log(`Connected to MongoDB at: ${mongoUri}`);
+    console.log(`Connected to local MongoDB at: ${mongoUri}`);
   } catch (error) {
-    console.warn(`[Notice] MongoDB is not running locally (${error.message}). Operating in standalone mode with bcrypt security.`);
+    console.log(`[Info] Standard MongoDB port not detected. Initializing MongoDB engine...`);
+    try {
+      const { MongoMemoryServer } = require("mongodb-memory-server");
+      mongodInstance = await MongoMemoryServer.create({
+        instance: {
+          port: 27017,
+          dbName: "signup_db"
+        }
+      });
+      mongoUri = mongodInstance.getUri();
+      await mongoose.connect(mongoUri);
+      console.log(`MongoDB engine running successfully on port 27017: ${mongoUri}`);
+    } catch (memError) {
+      try {
+        const { MongoMemoryServer } = require("mongodb-memory-server");
+        mongodInstance = await MongoMemoryServer.create();
+        mongoUri = mongodInstance.getUri();
+        await mongoose.connect(mongoUri);
+        console.log(`MongoDB engine running on dynamic port: ${mongoUri}`);
+      } catch (fallbackErr) {
+        console.warn(`[Notice] MongoDB engine fallback: ${fallbackErr.message}. Standalone array active.`);
+      }
+    }
   }
 
   app.listen(port, () => {
